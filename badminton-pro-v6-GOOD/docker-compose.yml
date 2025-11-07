@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: badminton
+      POSTGRES_PASSWORD: badminton123
+      POSTGRES_DB: badminton_world
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U badminton -d badminton_world"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  server:
+    build: ./server
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      JWT_SECRET: "world-tour-secret"
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: badminton
+      DB_PASS: badminton123
+      DB_NAME: badminton_world
+      REDIS_HOST: redis
+      CORS_ORIGIN: http://localhost:8080
+      SEED_ADMIN_EMAIL: admin@example.com
+      SEED_ADMIN_PASSWORD: admin123
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    ports: ["4000:4000"]
+    volumes: [ "uploads:/app/uploads" ]
+    restart: unless-stopped
+
+  worker:
+    build: ./server
+    command: ["node", "worker.js"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: badminton
+      DB_PASS: badminton123
+      DB_NAME: badminton_world
+      REDIS_HOST: redis
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    restart: unless-stopped
+
+  client:
+    build: ./client
+    depends_on: [server]
+    ports: ["8080:80"]
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  uploads:

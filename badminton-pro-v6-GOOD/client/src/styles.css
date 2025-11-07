@@ -1,0 +1,6 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+html, body, #root { height:100%; background:#0b1220; color:#e8eef8; }
+.card { @apply bg-[color:var(--card,#101826)] border border-[color:var(--line,#20304d)] rounded-xl p-4 shadow; }
+.btn { @apply px-4 py-2 rounded-lg bg-cyan-300 text-black font-semibold hover:opacity-90 active:scale-[.98] transition; }
+.input { @apply w-full rounded-lg bg-[#0f172a] border border-[#20304d] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-300/40; }
+.link { @apply text-cyan-300 hover:underline; }

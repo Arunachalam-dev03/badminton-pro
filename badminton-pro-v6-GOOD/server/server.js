@@ -1,0 +1,10 @@
+import http from 'http'; import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import morgan from 'morgan'; import dotenv from 'dotenv'; import path from 'path'; import { fileURLToPath } from 'url'; import { Server as SocketIOServer } from 'socket.io';
+import authRoutes, { seedAdmin } from './src/routes/auth.js'; import playerRoutes from './src/routes/players.js'; import teamRoutes from './src/routes/teams.js'; import courtRoutes from './src/routes/courts.js'; import matchRoutes from './src/routes/matches.js'; import tournamentRoutes from './src/routes/tournaments.js';
+dotenv.config();
+const app = express(); const server = http.createServer(app); const io = new SocketIOServer(server, { cors: { origin:(process.env.CORS_ORIGIN||'*').split(',') } }); app.locals.io = io;
+app.use(helmet()); app.use(morgan('dev')); app.use(express.json()); app.use(cors({ origin:(process.env.CORS_ORIGIN||'*').split(',') }));
+const __filename = fileURLToPath(import.meta.url); const __dirname = path.dirname(__filename); app.use('/uploads', express.static(path.join(__dirname,'uploads')));
+app.get('/health', (req,res)=> res.json({ ok:true }));
+app.use('/api/auth', authRoutes); app.use('/api/players', playerRoutes); app.use('/api/teams', teamRoutes); app.use('/api/courts', courtRoutes); app.use('/api/matches', matchRoutes); app.use('/api/tournaments', tournamentRoutes);
+io.on('connection', (s)=>{ s.join('matches'); s.on('join', r=>s.join(r)); });
+const PORT = process.env.PORT||4000; server.listen(PORT, async ()=>{ await seedAdmin(); console.log('API on', PORT) });

@@ -1,0 +1,5 @@
+import React, { useEffect, useState } from 'react'; import api from '../api'; import { socket } from '../socket';
+export default function Live(){ const [list,setList]=useState([]);
+  const load=async()=>{ const {data}=await api.get('/matches'); setList(data); data.forEach(m=>socket.emit('join',`match:${m.id}`)); };
+  useEffect(()=>{ load() },[]); useEffect(()=>{ const sc=m=>setList(p=>p.map(x=>x.id===m.id?m:x)); const ev=e=>console.log('event',e); socket.on('score',sc); socket.on('event',ev); return ()=>{socket.off('score',sc); socket.off('event',ev);} },[]);
+  return (<section className="card"><h3 className="font-semibold mb-2">Live Matches</h3><div className="grid md:grid-cols-2 gap-3">{list.map(m=>(<div className="card" key={m.id}><div className="text-sm text-[#9fb0cc]">{m.tournament_title || 'Friendly'} • {m.court_name || 'Court ?'} • R{m.round} • {m.type==='D'?'Doubles':'Singles'}</div><div className="font-semibold">{m.player1_name} vs {m.player2_name}</div><div className="text-sm">Status: {m.status}</div><div className="text-2xl mt-2">{m.current_score || '-'}</div></div>))}</div></section>); }

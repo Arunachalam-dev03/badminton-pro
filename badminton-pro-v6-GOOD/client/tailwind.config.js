@@ -1,0 +1,1 @@
+export default { content:["./index.html","./src/**/*.{js,jsx}"], theme:{ extend:{ colors:{ base:{ bg:"#0b1220", card:"#101826", line:"#20304d", text:"#e8eef8", mute:"#9fb0cc", accent:"#7dd3fc"} } } }, plugins:[] }
